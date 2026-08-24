@@ -1,0 +1,9 @@
+[run]
+source = customers,products,billing
+omit =
+    */migrations/*
+    */tests.py
+    manage.py
+
+[xml]
+output = coverage.xml

@@ -51,13 +51,15 @@ scan shows a handful of real, explainable findings:
 - Mutable default argument (`def f(items=[])`) in a small utility function
   (bug).
 - Unused import left in one module (code smell).
-- One identifier with an inconsistent naming style (e.g. a variable named
-  `Total_Price` in `billing/views.py`) — deliberately **conformant** with the
-  default "Sonar way" profile, reserved to violate the *customized* naming
-  rule introduced later in the workshop.
 
 All are small, single-purpose, and easy to point at during a walkthrough —
 no attempt to be exhaustive or realistic-scale.
+
+Note: the naming-convention violation used later in the workshop is
+deliberately **not** pre-planted here — see "Custom naming-convention rule
+mechanic" below. It's introduced as a live edit during the workshop instead,
+so it's unambiguously "new code" on the second scan regardless of the
+org's New Code Definition setting.
 
 ## Test coverage
 
@@ -71,6 +73,12 @@ no attempt to be exhaustive or realistic-scale.
   partial, non-trivial coverage (not 0%, not artificially 100%) — using the
   existing `customers/tests.py` and `products/tests.py` as-is (already
   reasonable), and fixing `billing/tests.py` to use the real `Billing` model.
+- `coverage.xml` is generated once during setup and **committed to the
+  repo**. Attendees do not need Python, pytest, or Django installed to run
+  the workshop scan — the scanner just reads the checked-in report. The
+  README calls out that this is a static, pre-generated artifact (fine for
+  a fixed workshop codebase) and includes an optional/advanced section for
+  attendees who want to install Python and regenerate it themselves.
 
 ## Custom naming-convention rule mechanic
 
@@ -78,12 +86,22 @@ Rule: **`python:S117`** ("Local variable and function names should comply
 with a naming convention") — built into Sonar way, takes a configurable
 `format` regex.
 
-Workshop steps (documented in README):
-1. Duplicate/extend the default Python quality profile into a new profile.
-2. Edit `python:S117`'s `format` parameter to a stricter regex that the
-   pre-planted `Total_Price`-style identifier violates but ordinary
-   `snake_case` names don't.
-3. Assign the new profile to the project.
+Workshop steps (documented in README, with exact click-path and regex spelled
+out — no "customize as you see fit" hand-waving):
+1. In SonarQube Cloud: **Organization → Quality Profiles → Python → Sonar
+   way → "..." menu → Copy**, name it e.g. `Workshop Python`.
+2. Open the new profile, search for rule `S117`, open its parameters, and
+   set `format` from the Sonar way default (`^[_a-z][a-z0-9_]*$`, i.e. any
+   lowercase snake_case name) to a stricter minimum-length variant:
+   `^[a-z][a-z0-9_]{2,}$` — same snake_case shape, but now requires at
+   least 3 characters total. This is the concrete value the README tells
+   the attendee to paste in; it's picked specifically so ordinary
+   identifiers in the codebase are unaffected and only the one renamed
+   variable (next section) trips it.
+3. **Quality Profiles → Projects → assign** the new profile to this project
+   (or set it as the org default for Python).
+4. Back in the code, rename one existing variable to violate the new rule
+   (see next section) before rerunning the scan.
 
 ## Guaranteeing a deterministic Quality Gate failure
 
@@ -94,21 +112,27 @@ create a copy of the Sonar way Quality Gate with one added condition:
 
 - **New Code Smells is greater than 0** (evaluated on New Code)
 
-Because SonarQube Cloud's default New Code definition (e.g. 30-day window)
-treats both scans in the workshop as "new," the single naming-rule violation
-introduced on rerun will deterministically flip this condition and fail the
-gate — independent of remediation-effort math.
+To make this deterministic regardless of the org's New Code Definition
+(previous version / number of days / reference branch), the workshop has
+the attendee make an actual source edit between the two scans: rename an
+existing compliant variable (e.g. `total_price` in `billing/views.py`) to a
+too-short name (e.g. `tp`) that still matches the *default* S117 format but
+violates the new minimum-length regex. Because the line is genuinely
+changed, it's counted as new code under any New Code Definition strategy,
+so the resulting S117 issue reliably flips the "New Code Smells > 0"
+condition on rerun — independent of remediation-effort math or the org's
+New Code window.
 
 ## README structure
 
 1. Prerequisites (Python 3.x, a SonarQube Cloud account in org
-   `sonar-workshop-1`, GitHub account).
+   `sonar-workshop-1`, GitHub account). (COMMENT: Ideally they don't have to install python - I'd liek to make this as frictionless as possible)
 2. Clone the repo.
 3. Install the `sonar-scanner` CLI (Homebrew on macOS, manual zip + PATH
-   entry for Linux/Windows) and verify with `sonar-scanner -v`.
+   entry for Linux/Windows) and verify with `sonar-scanner -v`. (COMMENT: let's make sure to add explicit steps for htis based on documentation)
 4. Create a new project in SonarQube Cloud under org `sonar-workshop-1`,
    generate a token.
-5. Install Python deps, run tests with coverage to produce `coverage.xml`.
+5. Install Python deps, run tests with coverage to produce `coverage.xml`. (COMMENT: again, let's see if we can get away with no python install by committing the test report to repo)
 6. Run `sonar-scanner` with the token; point at `coverage.xml`.
 7. Navigate the results: Issues tab (bugs/vulnerabilities/code smells/hotspots),
    Measures (coverage %), Quality Gate (passing).

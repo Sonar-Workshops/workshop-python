@@ -1,17 +1,10 @@
 from rest_framework import serializers
-from .models import Customer, Product, BillingData
 
-class CustomerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Customer
-        fields = '__all__'
+from .models import Billing
 
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = '__all__'
 
-class BillingDataSerializer(serializers.ModelSerializer):
+class BillingSerializer(serializers.ModelSerializer):
     class Meta:
-        model = BillingData
-        fields = '__all__'
+        model = Billing
+        fields = "__all__"
+        read_only_fields = ["total_amount"]
