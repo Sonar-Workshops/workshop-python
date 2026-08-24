@@ -15,9 +15,11 @@ regenerate coverage yourself if you want to.
 - `git`
 - A SonarQube Cloud account with access to the **`sonar-workshop-1`**
   organization (ask your workshop host for an invite if you don't have one)
-- Java 17+ available on your machine (the scanner needs it to run; on
-  scanner CLI 7.2+ it can auto-provision a JRE for you, but having a system
-  Java avoids surprises)
+- No system Java install is required — the scanner CLI (6.0+) auto-provisions
+  its own JRE by default. If you disable that
+  (`sonar.scanner.skipJreProvisioning`) or use an older scanner, you'll need
+  Java 21+ installed yourself (Java 17 is deprecated by current scanner
+  versions).
 
 ## 2. Clone the repo
 
@@ -69,10 +71,11 @@ sonar-scanner -v
    listed from GitHub, or create it manually with:
    - **Project key:** `workshop-python`
    - **Display name:** `SonarQube Cloud Python Workshop`
-3. Choose analysis method **"Locally"** / **"Other CI"** (i.e. not GitHub
-   Actions) — we're scanning from the command line.
-4. Generate a token when prompted (or via **My Account → Security →
-   Generate Token**). Copy it — you won't see it again.
+3. Choose the **manual/local analysis method** (i.e. not GitHub Actions) —
+   we're scanning from the command line. The exact wording may vary
+   slightly by UI version.
+4. Generate a token when prompted (or via **My Account → Access Tokens →
+   Generate**). Copy it — you won't see it again.
 
 This repo's `sonar-project.properties` already sets
 `sonar.organization=sonar-workshop-1` and `sonar.projectKey=workshop-python`
@@ -123,7 +126,10 @@ comply with a naming convention"), which takes a configurable regex.
 
 1. In SonarQube Cloud: **Organization → Quality Profiles → Python**.
 2. Find **Sonar way**, open its **"..."** menu, and choose **Copy**. Name
-   the copy `Workshop Python`.
+   the copy `Workshop Python`. (Sonar's docs now generally recommend
+   **Extend** over Copy for long-lived profiles, since an extended profile
+   automatically picks up new Sonar-authored rule updates — but for this
+   one-off workshop profile, Copy is simpler and works fine.)
 3. Open `Workshop Python`, search for rule **S117**, and open its
    parameters.
 4. The default `format` is `^[_a-z][a-z0-9_]*$` (plain lowercase
@@ -165,8 +171,11 @@ condition instead:
 
 1. **Organization → Quality Gates**, copy **Sonar way** into a new gate,
    e.g. `Workshop Gate`.
-2. Add a condition: **New Code Smells is greater than 0** (evaluated
-   `On New Code`).
+2. Add a condition on New Code for **New Code Smells is greater than 0**.
+   > Note: some orgs run in "MQR mode," where Code Smells are folded into a
+   > Maintainability rating/issue metric instead. If **New Code Smells**
+   > isn't in the condition picker, use **New Maintainability Issues is
+   > greater than 0** instead — same effect, different metric name.
 3. Assign `Workshop Gate` to the `workshop-python` project.
 4. Commit your edit from step 8, then rerun:
    ```bash
