@@ -121,8 +121,10 @@ On the project page in SonarQube Cloud:
 
 ## 7. Customize the Quality Profile with a naming-convention rule
 
-We'll tighten rule `python:S117` ("Local variable and function names should
-comply with a naming convention"), which takes a configurable regex.
+Rule `python:S117` ("Local variable and function names should comply with a
+naming convention") is already active in Sonar way by default — you don't
+need to turn it on. We're only overriding its configurable `format` regex
+parameter to make it stricter.
 
 1. In SonarQube Cloud: **Organization → Quality Profiles → Python**.
 2. Find **Sonar way**, open its **"..."** menu, and choose **Copy**. Name
